@@ -15,7 +15,7 @@ def main(args=None):
     cfg = cde.config.get_config()
 
     cm = cde.container.Docker()
-    cm.shell(cfg['image'], cfg['label'])
+    cm.shell(cfg['image'], cfg['tag'])
 
 
 if __name__ == "__main__":
