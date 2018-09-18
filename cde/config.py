@@ -25,4 +25,5 @@ def load(path=None):
     yaml = YAML(typ='safe')
     yaml.allow_duplicate_keys = False
     yaml.default_flow_style = False
+    yaml.setdefault('repos', {})
     return yaml.load(open(path))
