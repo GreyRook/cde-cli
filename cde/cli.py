@@ -8,7 +8,7 @@ import click
 import git
 
 from . import config
-import cde.container
+# import cde.container
 
 
 CFG = None
