@@ -8,6 +8,7 @@ Click = ">=6.0"
 "ruamel.yaml" = "*"
 docker = "*"
 dockerpty = "*"
+gitpython = "*"
 
 [dev-packages]
 pytest = "*"

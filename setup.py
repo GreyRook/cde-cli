@@ -11,6 +11,7 @@ with open('README.rst') as readme_file:
 
 # TODO
 requirements = [
+    'GitPython',
     "Click>=6.0",
     "ruamel.yaml",
     "docker",
