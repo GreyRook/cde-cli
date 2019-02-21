@@ -14,5 +14,3 @@ gitpython = "*"
 pytest = "*"
 gitpython = "*"
 
-[requires]
-python_version = "3.6"
