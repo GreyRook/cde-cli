@@ -21,7 +21,7 @@ test_requirements = []
 
 setup(
     name='cde-cli',
-    version='0.1.1',
+    version='0.2.0',
     description="cli helper",
     long_description=readme,
     author="Florian Ludwig",
