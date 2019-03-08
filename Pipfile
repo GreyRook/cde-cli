@@ -13,4 +13,4 @@ gitpython = "*"
 [dev-packages]
 pytest = "*"
 gitpython = "*"
-
+bumpversion = "*"
