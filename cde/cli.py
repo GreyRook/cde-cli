@@ -41,7 +41,7 @@ def update_repo(repo, target_branch):
             repo.git.checkout(target_branch, '--')
         except git.exc.GitCommandError:
             repo.git.checkout('master', '--')
-    
+
     remote = f'{repo.active_branch}' + '@{u}'
     count_pull = len(list(repo.iter_commits(f'{repo.active_branch}..{remote}')))
     count_push = len(list(repo.iter_commits(f'{remote}..{repo.active_branch}')))
@@ -51,23 +51,42 @@ def update_repo(repo, target_branch):
         changed = True
         # TODO, not just assome 'origin' does exist
         repo.remotes['origin'].pull("--rebase")
-    
+
     return repo_sync_result(
         count_push, count_pull, changed
     )
+
+
+def diff_count(repo):
+    """Count the number of local changes"""
+
+    change_types = ('A', 'D', 'R', 'M', 'T')
+    diff_index = repo.index.diff(None)
+
+    # TODO Better way to count all changes
+    total = 0
+    for change_type in change_types:
+        change_iterable = diff_index.iter_change_type(change_type)
+
+        for diff in change_iterable:
+            total += 1
+
+    return total
 
 
 @repo.command()
 @click.option('--branch', help='If specified given branch is checked out in all repos.  If it does not exist in a repo master is used instead', default=None)
 @click.option('--master', 'branch', flag_value='master',
               default=False, help='shortcut for --branch=master')
-def sync(branch):
+@click.option('--verbose', help='Shows additional information, like current commit sha', default=False, is_flag=True)
+@click.option('--stash', help='Stash changes if the repo is dirty', default=None)
+def sync(branch, verbose, stash):
     for name, repo in CFG.get('repos', {}).items():
-        
+
         path = Path('.') / name
 
         result = repo_sync_result(0, 0, False)
- 
+        stashed_changes = False
 
         if os.path.exists(path):
             # todo check remote URL
@@ -77,9 +96,15 @@ def sync(branch):
                 remote.fetch()
             print('\r▽ {} fetched, analyzing changes'.format(name), end='', flush=True)
             if repo.is_dirty():
-                click.secho(f'\r✖ {name} dirty, not updating          ', fg='red')
-                continue
-                
+                if stash is None:
+                    click.secho(f'\r✖ {name} dirty, not updating          ',
+                                fg='red')
+                    continue
+                else:
+                    stashed_changes = diff_count(repo)
+                    if stashed_changes:
+                        repo.git.stash('save', stash)
+
             try:
                 result = update_repo(repo, branch)
             except TypeError as e:
@@ -102,10 +127,21 @@ def sync(branch):
         if result.count_push:
             out += f' ↑·{result.count_push}'
 
+        if stashed_changes:
+            if result.changed:
+                out += f'📦·{stashed_changes}'
+            else:
+                # No need to keep the stash if we did not sync anything
+                repo.git.stash('pop')
+
         if result.count_push and result.count_pull:
             out += click.style(' not pulled', bold=True)
 
         out += ']'
+
+        if verbose:
+            out += f'(SHA1: {repo.rev_parse(str(repo.active_branch))})'
+
         # TODO make something more... sensible with whitespaces
         # click.get_terminal_size()
         click.echo(out + '                     ')
