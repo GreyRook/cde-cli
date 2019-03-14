@@ -80,18 +80,25 @@ def diff_count(repo):
               default=False, help='shortcut for --branch=master')
 @click.option('--verbose', help='Shows additional information, like current commit sha', default=False, is_flag=True)
 @click.option('--stash', help='Stash changes if the repo is dirty', default=None)
-def sync(branch, verbose, stash):
+@click.option('--exclude', help='Explicitly exclude repos from the update', multiple=True)
+def sync(branch, verbose, stash, exclude):
     for name, repo in CFG.get('repos', {}).items():
+        if name in exclude:
+            click.echo('🙈 {} skipped.'.format(name) + '                     ')
+            continue
 
         path = Path('.') / name
 
         result = repo_sync_result(0, 0, False)
         stashed_changes = None
+        prev_branch = None
 
         if os.path.exists(path):
             # todo check remote URL
-            print('▽ {} fetching...'.format(name), end='', flush=True)
+            print('\r▽ {} fetching...'.format(name), end='', flush=True)
             repo = git.Repo(str(path))
+            prev_branch = repo.active_branch
+
             for remote in repo.remotes:
                 remote.fetch()
             print('\r▽ {} fetched, analyzing changes'.format(name), end='', flush=True)
@@ -126,8 +133,9 @@ def sync(branch, verbose, stash):
         if result.count_push:
             out += f' ↑·{result.count_push}'
 
+        branch_changed = repo.active_branch != prev_branch
         if stashed_changes is not None:
-            if result.changed:
+            if result.changed or branch_changed:
                 out += f'📦·{stashed_changes}'
             else:
                 # No need to keep the stash if we did not sync anything
