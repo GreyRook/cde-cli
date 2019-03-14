@@ -86,7 +86,7 @@ def sync(branch, verbose, stash):
         path = Path('.') / name
 
         result = repo_sync_result(0, 0, False)
-        stashed_changes = False
+        stashed_changes = None
 
         if os.path.exists(path):
             # todo check remote URL
@@ -102,8 +102,7 @@ def sync(branch, verbose, stash):
                     continue
                 else:
                     stashed_changes = diff_count(repo)
-                    if stashed_changes:
-                        repo.git.stash('save', stash)
+                    repo.git.stash('save', stash)
 
             try:
                 result = update_repo(repo, branch)
@@ -127,7 +126,7 @@ def sync(branch, verbose, stash):
         if result.count_push:
             out += f' ↑·{result.count_push}'
 
-        if stashed_changes:
+        if stashed_changes is not None:
             if result.changed:
                 out += f'📦·{stashed_changes}'
             else:
