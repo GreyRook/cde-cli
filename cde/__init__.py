@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """Top-level package for CLI for CDE."""
 
 __author__ = """Florian Ludwig"""
