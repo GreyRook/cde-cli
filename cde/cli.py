@@ -79,7 +79,7 @@ def diff_count(repo):
 @click.option('--master', 'branch', flag_value='master',
               default=False, help='shortcut for --branch=master')
 @click.option('--verbose', help='Shows additional information, like current commit sha', default=False, is_flag=True)
-@click.option('--stash', help='Stash changes if the repo is dirty', default=None)
+@click.option('--stash', help='Stash changes if the repo is dirty', default=False, is_flag=True)
 @click.option('--exclude', help='Explicitly exclude repos from the update', multiple=True)
 def sync(branch, verbose, stash, exclude):
     for name, repo in CFG.get('repos', {}).items():
@@ -95,7 +95,7 @@ def sync(branch, verbose, stash, exclude):
 
         if os.path.exists(path):
             # todo check remote URL
-            print('\r▽ {} fetching...'.format(name), end='', flush=True)
+            print('▽ {} fetching...'.format(name), end='', flush=True)
             repo = git.Repo(str(path))
             prev_branch = repo.active_branch
 
@@ -103,13 +103,13 @@ def sync(branch, verbose, stash, exclude):
                 remote.fetch()
             print('\r▽ {} fetched, analyzing changes'.format(name), end='', flush=True)
             if repo.is_dirty():
-                if stash is None:
+                if not stash:
                     click.secho(f'\r✖ {name} dirty, not updating          ',
                                 fg='red')
                     continue
                 else:
                     stashed_changes = diff_count(repo)
-                    repo.git.stash('save', stash)
+                    repo.git.stash('save', 'cde sync')
 
             try:
                 result = update_repo(repo, branch)
