@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """Console script for cde."""
 import os
+import sys
 import collections
 from pathlib import Path
 
 import click
 import git
+import git.exc
 
 import cde.config
 # import cde.container
@@ -100,7 +102,7 @@ def diff_count(repo):
     help='Explicitly exclude repos from the update',
     multiple=True)
 def sync(branch, verbose, stash, exclude):
-    for name, repo in CFG.get('repos', {}).items():
+    for name, repo_cfg in CFG.get('repos', {}).items():
         if name in exclude:
             click.echo('🙈 {} skipped.'.format(name) + '                     ')
             continue
@@ -138,7 +140,7 @@ def sync(branch, verbose, stash, exclude):
         else:
             print('▽ {} cloning...'.format(name), end='', flush=True)
 
-            repo = git.Repo.clone_from(repo['url'], str(path))
+            repo = git.Repo.clone_from(repo_cfg['url'], str(path))
             result = repo_sync_result(0, 0, changed=True)
 
         flags = ''
@@ -180,7 +182,7 @@ def env_var_name(name):
 
 @main.command()
 def env():
-    for name, repo in ctx.obj['cfg']['repos'].items():
+    for name, repo in CFG['repos'].items():
         env_var = env_var_name(name)
         print('{}={}'.format(env_var, repo['commit']))
 
@@ -196,14 +198,14 @@ def config():
     pass
 
 
-@config.command()
-def update():
-    if not CFG.get('repos', {}).get():
-        click.echo(f'no repo {a} not found in .cde.yml')
-        sys.exit(1)
+# @config.command()
+# def update():
+#     if not CFG.get('repos', {}).get():
+#         click.echo(f'no repo {a} not found in .cde.yml')
+#         sys.exit(1)
 
-    CFG['repos'][repo]['commit'] == commit
-    cde.config.dump(CFG)
+#     CFG['repos'][repo]['commit'] == commit
+#     cde.config.dump(CFG)
 
 
 if __name__ == "__main__":
