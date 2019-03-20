@@ -58,7 +58,8 @@ def check_docker():
     """"""
     cmd = ['docker', 'version']
     try:
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except FileNotFoundError:
         check_docker.__doc__ += 'docker executable not found'
         return False
@@ -75,7 +76,8 @@ def check_docker_compose():
     """"""
     cmd = ['docker-compose', 'version']
     try:
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except FileNotFoundError:
         check_docker.__doc__ += 'docker-compose executable not found'
         return False
@@ -104,6 +106,7 @@ def main():
 
     if not ok:
         sys.exit(1)
+
 
 if __name__ == '__main__':
     main()

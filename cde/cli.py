@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-
 """Console script for cde."""
 import os
+import sys
 import collections
 from pathlib import Path
 
 import click
 import git
+import git.exc
 
 import cde.config
 # import cde.container
 
-
 CFG = None
-repo_sync_result = collections.namedtuple('SyncResult', ['count_push', 'count_pull', 'changed'])
+repo_sync_result = collections.namedtuple(
+    'SyncResult', ['count_push', 'count_pull', 'changed'])
 
 
 @click.group()
@@ -43,8 +44,10 @@ def update_repo(repo, target_branch):
             repo.git.checkout('master', '--')
 
     remote = f'{repo.active_branch}' + '@{u}'
-    count_pull = len(list(repo.iter_commits(f'{repo.active_branch}..{remote}')))
-    count_push = len(list(repo.iter_commits(f'{remote}..{repo.active_branch}')))
+    count_pull = len(
+        list(repo.iter_commits(f'{repo.active_branch}..{remote}')))
+    count_push = len(
+        list(repo.iter_commits(f'{remote}..{repo.active_branch}')))
     changed = False
 
     if count_push == 0 and count_pull:
@@ -52,9 +55,7 @@ def update_repo(repo, target_branch):
         # TODO, not just assome 'origin' does exist
         repo.remotes['origin'].pull("--rebase")
 
-    return repo_sync_result(
-        count_push, count_pull, changed
-    )
+    return repo_sync_result(count_push, count_pull, changed)
 
 
 def diff_count(repo):
@@ -75,14 +76,33 @@ def diff_count(repo):
 
 
 @repo.command()
-@click.option('--branch', help='If specified given branch is checked out in all repos.  If it does not exist in a repo master is used instead', default=None)
-@click.option('--master', 'branch', flag_value='master',
-              default=False, help='shortcut for --branch=master')
-@click.option('--verbose', help='Shows additional information, like current commit sha', default=False, is_flag=True)
-@click.option('--stash', help='Stash changes if the repo is dirty', default=False, is_flag=True)
-@click.option('--exclude', help='Explicitly exclude repos from the update', multiple=True)
+@click.option(
+    '--branch',
+    help='If specified given branch is checked out in all repos.'
+         '  If it does not exist in a repo master is used instead',
+    default=None)
+@click.option(
+    '--master',
+    'branch',
+    flag_value='master',
+    default=False,
+    help='shortcut for --branch=master')
+@click.option(
+    '--verbose',
+    help='Shows additional information, like current commit sha',
+    default=False,
+    is_flag=True)
+@click.option(
+    '--stash',
+    help='Stash changes if the repo is dirty',
+    default=False,
+    is_flag=True)
+@click.option(
+    '--exclude',
+    help='Explicitly exclude repos from the update',
+    multiple=True)
 def sync(branch, verbose, stash, exclude):
-    for name, repo in CFG.get('repos', {}).items():
+    for name, repo_cfg in CFG.get('repos', {}).items():
         if name in exclude:
             click.echo('🙈 {} skipped.'.format(name) + '                     ')
             continue
@@ -101,11 +121,12 @@ def sync(branch, verbose, stash, exclude):
 
             for remote in repo.remotes:
                 remote.fetch()
-            print('\r▽ {} fetched, analyzing changes'.format(name), end='', flush=True)
+            msg = f'\r▽ {name} fetched, analyzing changes'
+            print(msg, end='', flush=True)
             if repo.is_dirty():
                 if not stash:
-                    click.secho(f'\r✖ {name} dirty, not updating          ',
-                                fg='red')
+                    click.secho(
+                        f'\r✖ {name} dirty, not updating          ', fg='red')
                     continue
                 else:
                     stashed_changes = diff_count(repo)
@@ -119,7 +140,7 @@ def sync(branch, verbose, stash, exclude):
         else:
             print('▽ {} cloning...'.format(name), end='', flush=True)
 
-            repo = git.Repo.clone_from(repo['url'], str(path))
+            repo = git.Repo.clone_from(repo_cfg['url'], str(path))
             result = repo_sync_result(0, 0, changed=True)
 
         flags = ''
@@ -161,7 +182,7 @@ def env_var_name(name):
 
 @main.command()
 def env():
-    for name, repo in ctx.obj['cfg']['repos'].items():
+    for name, repo in CFG['repos'].items():
         env_var = env_var_name(name)
         print('{}={}'.format(env_var, repo['commit']))
 
@@ -177,14 +198,14 @@ def config():
     pass
 
 
-@config.command()
-def update():
-    if not CFG.get('repos', {}).get():
-        click.echo(f'no repo {a} not found in .cde.yml')
-        sys.exit(1)
+# @config.command()
+# def update():
+#     if not CFG.get('repos', {}).get():
+#         click.echo(f'no repo {a} not found in .cde.yml')
+#         sys.exit(1)
 
-    CFG['repos'][repo]['commit'] == commit
-    cde.config.dump(CFG)
+#     CFG['repos'][repo]['commit'] == commit
+#     cde.config.dump(CFG)
 
 
 if __name__ == "__main__":

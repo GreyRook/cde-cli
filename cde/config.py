@@ -26,7 +26,7 @@ def validate(cfg):
 def load(path=None):
     if path is None:
         path = DEFAULT_CFG_PATH
-    
+
     if not os.path.exists(path):
         return {}
 
