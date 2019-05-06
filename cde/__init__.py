@@ -3,4 +3,4 @@
 
 __author__ = """Florian Ludwig"""
 __email__ = 'f.ludwig@greyrook.com'
-__version__ = '0.3.0'
+__version__ = '0.3.1'
