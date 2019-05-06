@@ -183,6 +183,9 @@ def env_var_name(name):
 @main.command()
 def env():
     for name, repo in CFG['repos'].items():
+        if 'commit' not in repo:
+            continue
+
         env_var = env_var_name(name)
         print('{}={}'.format(env_var, repo['commit']))
 
