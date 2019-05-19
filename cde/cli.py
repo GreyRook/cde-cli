@@ -116,7 +116,11 @@ def sync(branch, verbose, stash, exclude):
         if os.path.exists(path):
             # todo check remote URL
             print('▽ {} fetching...'.format(name), end='', flush=True)
-            repo = git.Repo(str(path))
+            try:
+                repo = git.Repo(str(path))
+            except git.exc.InvalidGitRepositoryError:
+                click.secho(f'\r✖ {name} ERROR, not a git repo', fg='red')
+                continue
             prev_branch = repo.active_branch
 
             for remote in repo.remotes:
